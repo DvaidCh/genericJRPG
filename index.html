@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>waves of freedom</title>
+	<style type="text/css">
+		.tile{display: inline-block;width: 100px;height: 100px;
+			}
+		.subtile{float:left;width: 10px;height: 10px;font-size: 10px;border-radius: 50%;text-align: center
+			}
+		.water{
+			background: linear-gradient(45deg,#00F 0%, #00A 25%, #00F 50%, #00A 75%,#00F 100%);
+		}
+		.land{
+			background: linear-gradient(135deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+		}
+		.row{height: 100px;}
+		.subrow{height: 10px;}
+		._forest{background: linear-gradient(0deg,#1A0 0%, #7A0 25%, #1A0 50%, #7A0 75%,#1A0 100%);color:darkgreen;}		
+		.forest{background: linear-gradient(90deg,green 0%, darkgreen 20%,darkgreen 30%, green 50%, darkgreen 70%, darkgreen 80%,green 100%);color:black;}
+		.grassLands{
+			background: linear-gradient(135deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+		}
+		.mountain{background: linear-gradient(90deg,#555 0%, #AAA 25%, #555 50%, #AAA 75%,#555 100%);color:darkgray;border-radius: 10%}
+		.village{background:  linear-gradient(0deg,#990 0%, #FF0 25%, #990 50%, #FF0 75%,#990 100%);color:brown;}
+		.beach{background: linear-gradient(45deg,#CF0 0%, #FF0 20%,#FF0 30%, #CF0 50%, #FF0 70%, #FF0 80%,#CF0 100%);color:blue;border-radius:0px }
+		.fort{background:  linear-gradient(0deg,#444 0%, #222 25%, #444 50%, #222 75%,#444 100%);color:gray;}
+		.regular{}
+		.desert{
+			background: linear-gradient(0deg,#CC0 0%, #FF0 20%,#FF0 30%, #CC0 50%, #FF0 70%, #FF0 80%,#CC0 100%);
+		}
+		.desert * .grassLands{
+			background: transparent;
+		}
+		.arctic{
+			background: linear-gradient(0deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
+		}
+		.arctic * .grassLands{
+			background: linear-gradient(0deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
+		}
+		.arctic * .beach{
+			background: linear-gradient(45deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
+		}
+		.swamp{
+			background: linear-gradient(135deg,#7A0 0%, #1A0 20%,#1A0 30%, #7A0 50%, #1A0 70%, #1A0 80%,#7A0 100%);
+		}
+		.swamp * .grassLands{
+			background: linear-gradient(135deg,#7A0 0%, #1A0 20%,#1A0 30%, #7A0 50%, #1A0 70%, #1A0 80%,#7A0 100%);
+		}
+
+		._swamp * .forest{
+			background: linear-gradient(90deg,green 0%, darkgreen 20%,darkgreen 30%, green 50%, darkgreen 70%, darkgreen 80%,green 100%);color:black;
+		}
+		.steepe{
+			background: linear-gradient(0deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+		}
+		.steepe * .grassLands{
+			background: linear-gradient(0deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+		}
+	</style>
+	<script type="text/javascript">
+	function Div(id){
+		var div=document.createElement("div");
+		if(id!=undefined)div.id=id;
+		return div;
+	}
+	currentWorld={};
+		class Tile extends Div{
+			constructor(name,transports,view,event){
+				super();
+				this.name=name;
+				this.transports=transports;
+				if(typeof(event)!="undefined")this.event=event;
+				this.classList.add("tile");
+				this.classList.add(view);
+			}
+			fill=function(subtileType,firstPoint,lastPoint){
+				var firstX=0, firstY=0,lastX=0,lastY=0;
+				
+				
+						if(firstPoint.x>lastPoint.x){firstX=lastPoint.x;lastX=firstPoint.x}else {firstX=firstPoint.x;lastX=lastPoint.x};
+						if(firstPoint.y>lastPoint.y){firstY=lastPoint.y;lastY=firstPoint.y}else {firstY=firstPoint.y;lastY=lastPoint.y};
+						if(firstX<0)firstX=0;
+						if(firstY<0)firstY=0;
+						if(lastX>9)lastX=9;
+						if(lastY>9)lastY=9;
+						
+						for (var i = firstX; i <= lastX; i++) {
+							
+							for (var j = firstY; j <= lastY; j++) {
+								this.subtiles[i][j]=new subtileType();
+							}		
+						}
+					}
+
+		}
+		class subTile extends Tile{
+			constructor(name,transports,view,event){
+				super(name,transports,view,event);
+				this.classList.remove("tile");
+				this.classList.add("subtile");
+				
+			}
+		}
+		class Island{
+			constructor(){
+				this.biom="regular";
+				this.lands=[];
+				this.forests=[];
+				this.mountains=[];
+				this.villages=[];
+				this.beaches=[];
+				this.forts=[];
+				this.cities=[];
+				this.countOfForests=Math.floor(Math.random()*10);
+				this.sizeOfForests=Math.ceil(Math.random()*10);
+				this.complexityOfForests=Math.ceil(Math.pow(this.countOfForests*this.sizeOfForests,1/2));
+				this.countOfMountains=Math.floor(Math.random()*3);
+				this.mountainDivider=Math.ceil(Math.random()*30);
+				this.mountainLength=Math.ceil(Math.random()*10);
+				this.mountainComplexity=1//Math.ceil(Math.pow(this.mountainDivider*this.mountainLength*this.countOfMountains,1/3));
+				this.countOfVillages=Math.floor(Math.random()*6)
+				this.sizeOfVillages=Math.ceil(Math.random()*2)
+				this.fortChance=this.countOfVillages/10;
+				this.cityChance=Math.random();
+				this.citySize=Math.random()*10;
+				
+			}
+			chooseBiom=function(){
+				if(this.villages.length==0)this.biom="wildlands"
+				if(this.mountains.length==0)this.biom="swamp";
+				if(this.forests.length==0){
+					if(Math.random()<0.5){this.biom="steepe"}else{this.biom="desert";}
+				}
+				if(this.forests.length<this.lands.length&&this.mountains.length>this.lands.length)this.biom="arctic";
+				for(var i=0;i<this.lands.length;i++){
+					
+						this.lands[i].classList.add(this.biom);
+						this.lands[i].biom=this.biom;
+					
+				}
+			}
+		}
+		class Water extends Tile{
+			constructor(){super("water","Ship","water",function(){console.log("water");return null;})}
+		}
+
+		class Land extends Tile{
+			constructor(){
+				super("land","","land",function(){console.log("land");return null;})
+				this.forests=[];
+				this.mountains=[];
+				this.subtiles=[];
+				for (var i = 0; i < 10; i++) {
+					this.subtiles[i]=[];
+					for(var	j=0;j<10;j++){
+						this.subtiles[i][j]=new GrassLands();
+					} 
+				}
+			}
+			growForests=function(){
+				
+				
+				for(var i=0;i<this.parent.countOfForests;i++){
+					
+					var forestCenter={x:Math.ceil(Math.random()*10),y:Math.ceil(Math.random()*10)};
+					var last={x:forestCenter.x,y:forestCenter.y};
+					
+					var curr={x:0,y:0};
+					var currForest={subtiles:[]};
+					for(var j=0;j<this.parent.complexityOfForests;j++){
+						
+						curr.x=last.x+Math.ceil(Math.random()*this.parent.sizeOfForests)*plusminus();
+						curr.y=last.y+Math.ceil(Math.random()*this.parent.sizeOfForests)*plusminus();
+						this.fill(Forest,curr,last,currForest);
+						last=curr;
+						if(Math.random()<0.5)last={x:forestCenter.x,y:forestCenter.y};
+					}
+					this.parent.forests.push(currForest);
+
+				}
+			}
+			growMountains=function(){
+				for(var i=0;i<this.parent.countOfMountains;i++){
+					
+					var mountainCenter={x:Math.ceil(Math.random()*10),y:Math.ceil(Math.random()*10)};
+					var last={x:mountainCenter.x,y:mountainCenter.y};
+					
+					var curr={x:0,y:0};
+					var currMountain={subtiles:[]};
+					for(var j=0;j<this.parent.mountainComplexity;j++){
+						
+						curr.x=last.x+Math.ceil(Math.random()*this.parent.mountainLength)*plusminus();
+						curr.y=last.y+Math.ceil(Math.random()*this.parent.mountainLength)*plusminus();
+						if(curr.x>curr.y){curr.y=Math.ceil(curr.y/this.parent.mountainDivider)}else if(curr.x<curr.y){curr.x=Math.ceil(curr.x/this.parent.mountainDivider)}else{curr.y=Math.ceil(curr.y/this.parent.mountainDivider);curr.x=Math.ceil(curr.x/this.parent.mountainDivider)}
+						this.fill(Mountain,curr,last,currMountain);
+						last=curr;
+					}
+					this.parent.mountains.push(currMountain);
+
+				}
+			}
+			growVillages=function(){
+				for(var i=0;i<Math.floor(Math.random()*this.parent.countOfVillages);i++){
+					var currentVillage={subtiles:[]};
+					var curr={x:Math.floor(Math.random()*10),y:Math.floor(Math.random()*10)}
+					this.fill(Village,curr,{x:Math.ceil(curr.x+plusminus()*Math.random()*this.parent.sizeOfVillages),y:Math.ceil(curr.y+plusminus()*Math.random()*this.parent.sizeOfVillages)},currentVillage);
+					this.parent.villages.push(currentVillage);
+				}
+			}
+			growBeaches=function(){
+				
+				if(this.x!=0)if(currentWorld.tiles[this.x-1][this.y].name=="water")//north
+				{
+					var currBeach={subtiles:[]}
+					this.fill(Beach,{x:0,y:0},{x:0,y:9},currBeach);
+					this.parent.beaches.push(currBeach)
+				}
+				if(this.x<currentWorld.sizeX-1)
+				if(currentWorld.tiles[this.x+1][this.y].name=="water")//south
+				{
+					
+					var currBeach={subtiles:[]}
+					this.fill(Beach,{x:9,y:0},{x:9,y:9},currBeach);
+					this.parent.beaches.push(currBeach)
+				}
+				if(this.y!=0)if(currentWorld.tiles[this.x][this.y-1].name=="water")//west
+				{
+					var currBeach={subtiles:[]}
+					this.fill(Beach,{x:0,y:0},{x:9,y:0},currBeach);
+					this.parent.beaches.push(currBeach)
+				}
+				if(this.y<currentWorld.sizeY-1)
+				if(currentWorld.tiles[this.x][this.y+1].name=="water")//east
+				{
+					
+					var currBeach={subtiles:[]}
+					this.fill(Beach,{x:0,y:9},{x:9,y:9},currBeach);
+					this.parent.beaches.push(currBeach)
+				}
+			}
+			growFort=function(){
+				if(Math.random()<this.parent.fortChance){
+					var currentFort=new Fort();
+					this.subtiles[Math.floor(Math.random()*10)][Math.floor(Math.random()*10)]=currentFort;
+					this.parent.forts.push({subtiles:[currentFort]});
+				}
+			}
+			growCity=function(){}
+			update=function(){
+				for (var i = 0; i < 10; i++) {
+					var currentRow=new Div();
+					currentRow.classList="subrow";
+					for(var	j=0;j<10;j++){
+						currentRow.appendChild( this.subtiles[i][j]);
+					}
+					this.appendChild(currentRow); 
+					
+				}
+			}
+		}
+		class Beach extends subTile{
+			constructor(){super("beach","Ship,Foot,Horse","beach",function(){console.log("beach");return null;})}
+		}
+		class GrassLands extends subTile{
+			constructor(){super("grassLands","Foot,Wheels,Horse","grassLands",function(){console.log("grassLands");return null;})}
+		}
+		class Forest extends subTile{
+			constructor(){super("forest","Foot","forest",function(){console.log("forest");return null;});this.innerHTML="↑"}
+		}
+		class Mountain extends subTile{
+			constructor(){super("mountain","Mountain","mountain",function(){console.log("mountain");return null;});this.innerHTML="▲"}
+		}
+		class Village extends subTile{
+			constructor(){super("village","Foot,Wheels,Horse","village",function(){console.log("village");return null;});this.innerHTML="#"}
+		}
+		class Town extends subTile{
+			constructor(){super("town","Foot,Wheels,Horse","town",function(){console.log("town");return null;})}
+		}
+		class Fort extends subTile{
+			constructor(){super("fort","Foot,Wheels,Horse","fort",function(){console.log("fort");return null;});this.innerHTML="F"}
+		}
+		class City extends subTile{
+			constructor(){super("city","Foot,Wheels,Horse","city",function(){console.log("city");return null;})}
+		}
+		class Port extends subTile{
+			constructor(){super("port","Foot,Wheels,Horse","port",function(){console.log("port");return null;})}
+		}
+		function plusminus(){if(Math.random()<0.5){return -1}else return 1}
+		class WorldMap extends Div{
+			fill=function(tileType,firstPoint,lastPoint,island){
+				var firstX=0, firstY=0,lastX=0,lastY=0;
+				if(typeof(island)=="undefined")var island={lands:[]};
+						if(firstPoint.x>lastPoint.x){firstX=lastPoint.x;lastX=firstPoint.x}else {firstX=firstPoint.x;lastX=lastPoint.x};
+						if(firstPoint.y>lastPoint.y){firstY=lastPoint.y;lastY=firstPoint.y}else {firstY=firstPoint.y;lastY=lastPoint.y};
+						if(firstX<0)firstX=0;
+						if(firstY<0)firstY=0;
+						if(lastX>this.sizeX)lastX=this.sizeX;
+						if(lastY>this.sizeY)lastY=this.sizeY;
+						for (var i = firstX; i < lastX; i++) {
+							for (var j = firstY; j < lastY; j++) {
+								this.tiles[i][j]=new tileType();
+								this.tiles[i][j].x=i;
+								this.tiles[i][j].y=j;
+								island.lands.push(this.tiles[i][j]);
+								this.tiles[i][j].parent=island;
+							}		
+						}
+					}
+			constructor(name,sizeX,sizeY,countOfIslands,islandMaxSize){
+				super();
+				currentWorld=this;
+				if(typeof(sizeX)=="undefined"){
+					sizeX=25;
+					sizeY=25;
+				}
+				this.name=name;
+				this.islands=[];
+				this.tiles=[];
+				this.sizeX=sizeX;
+				this.sizeY=sizeY;
+				this.style.width=sizeY*100+"px";
+				this.style.height=sizeX*100+"px";
+				for (var i = 0; i < sizeX; i++) {
+					this.tiles[i]=[];
+					for(var	j=0;j<sizeY;j++){
+						this.tiles[i][j]=new Water();
+					} 
+				}
+				for(var i=0;i<countOfIslands;i++){
+					var islandCenter={x:Math.ceil(Math.random()*sizeX),y:Math.ceil(Math.random()*sizeY)};
+					var last={x:islandCenter.x,y:islandCenter.y};
+					var islandComplexity=Math.pow(countOfIslands*islandMaxSize,1/2);
+					var curr={x:0,y:0};
+					var currIsland=new Island();
+					for(var j=0;j<islandComplexity;j++){
+						curr.x=last.x+Math.ceil(Math.random()*islandMaxSize)*plusminus();
+						curr.y=last.y+Math.ceil(Math.random()*islandMaxSize)*plusminus();
+						this.fill(Land,curr,last,currIsland);
+						last=curr;
+						if(Math.random()<0.5)last={x:islandCenter.x,y:islandCenter.y};
+					}
+					this.islands.push(currIsland);
+
+				}
+				for(var i=0;i<sizeX;i++){
+					var currentRow=new Div();
+					currentRow.classList.add("row");
+					for(var j=0;j<sizeY;j++){
+						if(this.tiles[i][j].name=="land"){this.tiles[i][j].growBeaches();this.tiles[i][j].growForests();this.tiles[i][j].growMountains();this.tiles[i][j].growVillages();this.tiles[i][j].growFort();
+						this.tiles[i][j].update();}
+						currentRow.appendChild(this.tiles[i][j]);
+					}
+					this.appendChild(currentRow);
+				}
+				for(var i=0;i<this.islands.length;i++){
+					this.islands[i].chooseBiom();
+				}
+				
+			}	
+			
+		}
+	</script>
+</head>
+<body>
+<script type="text/javascript">
+	//document.body.appendChild(new WorldMap("test",prompt("vertical"),prompt("horizontal"),prompt("count of Islands"),prompt("Maximum island part size")))
+	document.body.appendChild(new WorldMap("test",50,50,50,5))
+</script>
+</body>
+</html>
