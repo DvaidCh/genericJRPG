@@ -4,57 +4,67 @@
 	<title>waves of freedom</title>
 	<style type="text/css">
 		.tile{display: inline-block;width: 100px;height: 100px;
+			background-size: cover;
+			image-rendering: pixelated;
 			}
-		.subtile{float:left;width: 10px;height: 10px;font-size: 10px;border-radius: 50%;text-align: center
+		.subtile{float:left;width: 10px;height: 10px;font-size: 10px;text-align: center;
+			background-size: cover;
+			image-rendering: pixelated;
 			}
 		.water{
-			background: linear-gradient(45deg,#00F 0%, #00A 25%, #00F 50%, #00A 75%,#00F 100%);
+			background: url("water.png");
+			background-size: auto auto;
+			
 		}
 		.land{
-			background: linear-gradient(135deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+			background: url("grass.png");
 		}
 		.row{height: 100px;}
 		.subrow{height: 10px;}
 		._forest{background: linear-gradient(0deg,#1A0 0%, #7A0 25%, #1A0 50%, #7A0 75%,#1A0 100%);color:darkgreen;}		
-		.forest{background: linear-gradient(90deg,green 0%, darkgreen 20%,darkgreen 30%, green 50%, darkgreen 70%, darkgreen 80%,green 100%);color:black;}
+		.forest{background: url("forest.png");color:black;}
 		.grassLands{
-			background: linear-gradient(135deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+			
+			background: url("grass.png");
 		}
-		.mountain{background: linear-gradient(90deg,#555 0%, #AAA 25%, #555 50%, #AAA 75%,#555 100%);color:darkgray;border-radius: 10%}
-		.village{background:  linear-gradient(0deg,#990 0%, #FF0 25%, #990 50%, #FF0 75%,#990 100%);color:brown;}
-		.beach{background: linear-gradient(45deg,#CF0 0%, #FF0 20%,#FF0 30%, #CF0 50%, #FF0 70%, #FF0 80%,#CF0 100%);color:blue;border-radius:0px }
-		.fort{background:  linear-gradient(0deg,#444 0%, #222 25%, #444 50%, #222 75%,#444 100%);color:gray;}
+		.mountain{color:darkgray;border-radius: 10%;background: url("mountains.png");}
+		.village{color:brown;background: url("village.png");}
+		.beach{color:blue;border-radius:0px;background: url("beach.png"); }
+		.fort{background:url("fort.png");color:gray;}
 		.regular{}
 		.desert{
-			background: linear-gradient(0deg,#CC0 0%, #FF0 20%,#FF0 30%, #CC0 50%, #FF0 70%, #FF0 80%,#CC0 100%);
+			background: url("desert.png");
 		}
 		.desert * .grassLands{
-			background: transparent;
+			background: url("desert.png");
 		}
 		.arctic{
-			background: linear-gradient(0deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
+			background:url("snow.png");
 		}
 		.arctic * .grassLands{
-			background: linear-gradient(0deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
+			background:url("snow.png");
+		}
+		.arctic * .forest{
+			background:url("forest snow.png");
 		}
 		.arctic * .beach{
 			background: linear-gradient(45deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
 		}
 		.swamp{
-			background: linear-gradient(135deg,#7A0 0%, #1A0 20%,#1A0 30%, #7A0 50%, #1A0 70%, #1A0 80%,#7A0 100%);
+			background:url("swamp.png");
 		}
 		.swamp * .grassLands{
-			background: linear-gradient(135deg,#7A0 0%, #1A0 20%,#1A0 30%, #7A0 50%, #1A0 70%, #1A0 80%,#7A0 100%);
+			background:url("swamp.png");
 		}
 
 		._swamp * .forest{
 			background: linear-gradient(90deg,green 0%, darkgreen 20%,darkgreen 30%, green 50%, darkgreen 70%, darkgreen 80%,green 100%);color:black;
 		}
 		.steepe{
-			background: linear-gradient(0deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+			background:url("steppe.png");
 		}
 		.steepe * .grassLands{
-			background: linear-gradient(0deg,#2F0 0%, #CF0 25%, #2F0 50%, #CF0 75%,#2F0 100%);
+			background: url("steppe.png");
 		}
 	</style>
 	<script type="text/javascript">
@@ -265,19 +275,19 @@
 			constructor(){super("grassLands","Foot,Wheels,Horse","grassLands",function(){console.log("grassLands");return null;})}
 		}
 		class Forest extends subTile{
-			constructor(){super("forest","Foot","forest",function(){console.log("forest");return null;});this.innerHTML="↑"}
+			constructor(){super("forest","Foot","forest",function(){console.log("forest");return null;});this.innerHTML=""}
 		}
 		class Mountain extends subTile{
-			constructor(){super("mountain","Mountain","mountain",function(){console.log("mountain");return null;});this.innerHTML="▲"}
+			constructor(){super("mountain","Mountain","mountain",function(){console.log("mountain");return null;});this.innerHTML=""}
 		}
 		class Village extends subTile{
-			constructor(){super("village","Foot,Wheels,Horse","village",function(){console.log("village");return null;});this.innerHTML="#"}
+			constructor(){super("village","Foot,Wheels,Horse","village",function(){console.log("village");return null;});this.innerHTML=""}
 		}
 		class Town extends subTile{
 			constructor(){super("town","Foot,Wheels,Horse","town",function(){console.log("town");return null;})}
 		}
 		class Fort extends subTile{
-			constructor(){super("fort","Foot,Wheels,Horse","fort",function(){console.log("fort");return null;});this.innerHTML="F"}
+			constructor(){super("fort","Foot,Wheels,Horse","fort",function(){console.log("fort");return null;});this.innerHTML=""}
 		}
 		class City extends subTile{
 			constructor(){super("city","Foot,Wheels,Horse","city",function(){console.log("city");return null;})}
@@ -363,8 +373,8 @@
 </head>
 <body>
 <script type="text/javascript">
-	document.body.appendChild(new WorldMap("test",prompt("vertical"),prompt("horizontal"),prompt("count of Islands"),prompt("Maximum island part size")))
-	//document.body.appendChild(new WorldMap("test",50,50,50,5))
+	//document.body.appendChild(new WorldMap("test",prompt("vertical"),prompt("horizontal"),prompt("count of Islands"),prompt("Maximum island part size")))
+	document.body.appendChild(new WorldMap("test",50,50,50,5))
 </script>
 </body>
 </html>
