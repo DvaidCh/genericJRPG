@@ -11,77 +11,67 @@
 			background-size: cover;
 			image-rendering: pixelated;
 			}
-		.water{
-			background: url("water.png");
-			background-size: auto auto;
-			
-		}
-		.land{
-			background: url("grass.png");
-		}
-		.row{height: 100px;}
-		.subrow{height: 10px;}
-		._forest{background: linear-gradient(0deg,#1A0 0%, #7A0 25%, #1A0 50%, #7A0 75%,#1A0 100%);color:darkgreen;}		
-		.forest{background: url("forest.png");color:black;}
-		.grassLands{
-			
-			background: url("grass.png");
-		}
-		.mountain{color:darkgray;border-radius: 10%;background: url("mountains.png");}
-		.village{color:brown;background: url("village.png");}
-		.beach{color:blue;border-radius:0px;background: url("beach.png"); }
-		.fort{background:url("fort.png");color:gray;}
-		.regular{}
-		.desert{
-			background: url("desert.png");
-		}
-		.desert * .grassLands{
-			background: url("desert.png");
-		}
-		.arctic{
-			background:url("snow.png");
-		}
-		.arctic * .grassLands{
-			background:url("snow.png");
-		}
-		.arctic * .forest{
-			background:url("forest snow.png");
-		}
-		.arctic * .beach{
-			background: linear-gradient(45deg,white 0%, snow 20%,snow 30%, white 50%, snow 70%, snow 80%,white 100%);
-		}
-		.swamp{
-			background:url("swamp.png");
-		}
-		.swamp * .grassLands{
-			background:url("swamp.png");
-		}
-
-		._swamp * .forest{
-			background: linear-gradient(90deg,green 0%, darkgreen 20%,darkgreen 30%, green 50%, darkgreen 70%, darkgreen 80%,green 100%);color:black;
-		}
-		.steepe{
-			background:url("steepe.png");
-		}
-		.steepe * .grassLands{
-			background: url("steepe.png");
-		}
+		img{image-rendering: pixelated;}
+		canvas{background: url("water.png");image-rendering: pixelated;}
+		
 	</style>
 	<script type="text/javascript">
+	outp={}
+	function sleep(ms) {
+   		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+	function img(src){
+		var img=new Image();img.loaded=false;img.onload=function(){
+			this.loaded=true;
+		}
+		img.src=src;
+		
+		
+		return img
+	};
+	images={};
+	images.water=new img("water.png")
+	images.land=new img("grass.png");
+	images.grass=new img("grass.png");
+	images.forest=new img("forest.png");
+	images.mountain=new img("mountains.png");
+	images.village=new img("village.png");
+	images.fort=new img("fort.png");
+	images.beach=new img("beach.png");
+	images.desert=new img("desert.png");
+	images.arctic=new img("snow.png");
+	images.swamp=new img("swamp.png");
+	images.steepe=new img("steepe.png");
+	images.arcticForest=new img("forest snow.png");
+	images.loaded={}
+	images.isImagesLoaded=function(){
+		for (var prop in images) {
+    		if(images[prop].loaded===false)return false;
+		}
+		return true;
+	}
+	
 	function Div(id){
-		var div=document.createElement("div");
+		var div=document.createElement("canvas");
 		if(id!=undefined)div.id=id;
+		div.context=div.getContext("2d")
 		return div;
 	}
 	currentWorld={};
-		class Tile extends Div{
-			constructor(name,transports,view,event){
-				super();
-				this.name=name;
+		class Tile {
+			constructor(type,transports,view,event){
+				
+				this.type=type;
 				this.transports=transports;
 				if(typeof(event)!="undefined")this.event=event;
-				this.classList.add("tile");
-				this.classList.add(view);
+				//this.classList.add("tile");
+				//this.classList.add(view);
+				this.img=images[type];
+				if(this.img==undefined)console.log(type)
+				
+				
+				this.width=100;
+				this.height=100;
 			}
 			fill=function(subtileType,firstPoint,lastPoint){
 				var firstX=0, firstY=0,lastX=0,lastY=0;
@@ -104,10 +94,10 @@
 
 		}
 		class subTile extends Tile{
-			constructor(name,transports,view,event){
-				super(name,transports,view,event);
-				this.classList.remove("tile");
-				this.classList.add("subtile");
+			constructor(type,transports,view,event){
+				super(type,transports,view,event);
+				//this.classList.remove("tile");
+				//this.classList.add("subtile");
 				
 			}
 		}
@@ -136,7 +126,9 @@
 				
 			}
 			chooseBiom=function(){
-				if(this.villages.length==0)this.biom="wildlands"
+				this.biom="regular";
+				
+				if(this.villages.length==0)this.biom="wildland"
 				if(this.mountains.length==0)this.biom="swamp";
 				if(this.forests.length==0){
 					if(Math.random()<0.5){this.biom="steepe"}else{this.biom="desert";}
@@ -144,10 +136,11 @@
 				if(this.forests.length<this.lands.length&&this.mountains.length>this.lands.length)this.biom="arctic";
 				for(var i=0;i<this.lands.length;i++){
 					
-						this.lands[i].classList.add(this.biom);
+						//this.lands[i].classList.add(this.biom);
 						this.lands[i].biom=this.biom;
 					
 				}
+				if((this.biom!="regular")&&this.biom!="wildland"){this.img=images[this.biom]}else{this.img=images.land};
 			}
 		}
 		class Water extends Tile{
@@ -166,6 +159,7 @@
 						this.subtiles[i][j]=new GrassLands();
 					} 
 				}
+				this.img=images.grass;
 			}
 			growForests=function(){
 				
@@ -219,28 +213,28 @@
 			}
 			growBeaches=function(){
 				
-				if(this.x!=0)if(currentWorld.tiles[this.x-1][this.y].name=="water")//north
+				if(this.x!=0)if(currentWorld.tiles[this.x-1][this.y].type=="water")//north
 				{
 					var currBeach={subtiles:[]}
 					this.fill(Beach,{x:0,y:0},{x:0,y:9},currBeach);
 					this.parent.beaches.push(currBeach)
 				}
 				if(this.x<currentWorld.sizeX-1)
-				if(currentWorld.tiles[this.x+1][this.y].name=="water")//south
+				if(currentWorld.tiles[this.x+1][this.y].type=="water")//south
 				{
 					
 					var currBeach={subtiles:[]}
 					this.fill(Beach,{x:9,y:0},{x:9,y:9},currBeach);
 					this.parent.beaches.push(currBeach)
 				}
-				if(this.y!=0)if(currentWorld.tiles[this.x][this.y-1].name=="water")//west
+				if(this.y!=0)if(currentWorld.tiles[this.x][this.y-1].type=="water")//west
 				{
 					var currBeach={subtiles:[]}
 					this.fill(Beach,{x:0,y:0},{x:9,y:0},currBeach);
 					this.parent.beaches.push(currBeach)
 				}
 				if(this.y<currentWorld.sizeY-1)
-				if(currentWorld.tiles[this.x][this.y+1].name=="water")//east
+				if(currentWorld.tiles[this.x][this.y+1].type=="water")//east
 				{
 					
 					var currBeach={subtiles:[]}
@@ -257,22 +251,32 @@
 			}
 			growCity=function(){}
 			update=function(){
+				while(!images.isImagesLoaded()){};
+				
+				
+				
 				for (var i = 0; i < 10; i++) {
-					var currentRow=new Div();
-					currentRow.classList="subrow";
-					for(var	j=0;j<10;j++){
-						currentRow.appendChild( this.subtiles[i][j]);
-					}
-					this.appendChild(currentRow); 
 					
-				}
+					for(var	j=0;j<10;j++){
+						currentWorld.context.drawImage(this.parent.img,this.x*100+i*10,this.y*100+j*10);
+						outp=this.subtiles[i][j]
+						if(this.subtiles[i][j].type=="grass"){currentWorld.context.drawImage(this.parent.img,this.x*100+i*10,this.y*100+j*10)}else{
+							currentWorld.context.drawImage(this.subtiles[i][j].img,this.x*100+i*10,this.y*100+j*10)
+						}
+						}
+					}
+					
+					
+				
 			}
+			
+			
 		}
 		class Beach extends subTile{
 			constructor(){super("beach","Ship,Foot,Horse","beach",function(){console.log("beach");return null;})}
 		}
 		class GrassLands extends subTile{
-			constructor(){super("grassLands","Foot,Wheels,Horse","grassLands",function(){console.log("grassLands");return null;})}
+			constructor(){super("grass","Foot,Wheels,Horse","grassLands",function(){console.log("grassLands");return null;})}
 		}
 		class Forest extends subTile{
 			constructor(){super("forest","Foot","forest",function(){console.log("forest");return null;});this.innerHTML=""}
@@ -316,20 +320,22 @@
 							}		
 						}
 					}
-			constructor(name,sizeX,sizeY,countOfIslands,islandMaxSize){
+			constructor(type,sizeX,sizeY,countOfIslands,islandMaxSize){
 				super();
 				currentWorld=this;
 				if(typeof(sizeX)=="undefined"){
 					sizeX=25;
 					sizeY=25;
 				}
-				this.name=name;
+				this.type=type;
 				this.islands=[];
 				this.tiles=[];
 				this.sizeX=sizeX;
 				this.sizeY=sizeY;
-				this.style.width=sizeY*100+"px";
-				this.style.height=sizeX*100+"px";
+				this.style.width=sizeX*100+"px";
+				this.style.height=sizeY*100+"px";
+				this.width=sizeX*100;
+				this.height=sizeY*100;
 				for (var i = 0; i < sizeX; i++) {
 					this.tiles[i]=[];
 					for(var	j=0;j<sizeY;j++){
@@ -353,28 +359,38 @@
 
 				}
 				for(var i=0;i<sizeX;i++){
-					var currentRow=new Div();
-					currentRow.classList.add("row");
 					for(var j=0;j<sizeY;j++){
-						if(this.tiles[i][j].name=="land"){this.tiles[i][j].growBeaches();this.tiles[i][j].growForests();this.tiles[i][j].growMountains();this.tiles[i][j].growVillages();this.tiles[i][j].growFort();
-						this.tiles[i][j].update();}
-						currentRow.appendChild(this.tiles[i][j]);
+						if(this.tiles[i][j].type=="land"){this.tiles[i][j].growBeaches();this.tiles[i][j].growForests();this.tiles[i][j].growMountains();this.tiles[i][j].growVillages();this.tiles[i][j].growFort();
+						}
+						
 					}
-					this.appendChild(currentRow);
+					
 				}
 				for(var i=0;i<this.islands.length;i++){
 					this.islands[i].chooseBiom();
 				}
-				
+				for(var i=0;i<sizeX;i++){
+					for(var j=0;j<sizeY;j++){
+						if(this.tiles[i][j].type=="land"){
+							
+						this.tiles[i][j].update();}
+						
+					}
+					
+					
+				}
 			}	
 			
 		}
 	</script>
 </head>
 <body>
-<script type="text/javascript">
-	document.body.appendChild(new WorldMap("test",prompt("vertical"),prompt("horizontal"),prompt("count of Islands"),prompt("Maximum island part size")))
-	//document.body.appendChild(new WorldMap("test",50,50,50,5))
-</script>
+<input type="" id="vertical" placeholder="vertical" value="50" title="vertical" />
+<input type="" id="horizontal" placeholder="horizontal" value="50" title="horizontal"/>
+<input type="" id="countOfIslands" placeholder="count of Islands" value="50" title="count of Islands"/>
+<input type="" id="MaxSize" placeholder="MaxSize of dimension of island part" value="5" title="MaxSize of dimension of island part"/>
+<button width="100px" height="100px" onclick="document.body.appendChild(new WorldMap('test',document.getElementById('vertical').value,document.getElementById('horizontal').value,document.getElementById('countOfIslands').value,document.getElementById('MaxSize').value))">generate</button>
+<br/>
+
 </body>
 </html>
