@@ -1,461 +1,533 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>JRPGmapGenerator</title>
+	<meta charset="UTF-8">
+	<title>JRPG Map Generator (Optimized)</title>
 	<style type="text/css">
-		.tile{display: inline-block;width: 100px;height: 100px;
-			background-size: cover;
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #222;
+			color: #fff;
+		}
+		canvas {
 			image-rendering: pixelated;
-			}
-		.subtile{float:left;width: 10px;height: 10px;font-size: 10px;text-align: center;
-			background-size: cover;
-			image-rendering: pixelated;
-			}
-		img{image-rendering: pixelated;}
-		canvas{image-rendering: pixelated;}
-		
+			background-color: #000;
+			border: 2px solid #555;
+			margin-top: 10px;
+		}
+		#inputs {
+			margin-bottom: 10px;
+			padding: 10px;
+			background-color: #333;
+			border-radius: 5px;
+			display: inline-block;
+		}
+		input {
+			padding: 5px;
+			margin-right: 5px;
+			width: 80px;
+		}
+		button {
+			padding: 5px 15px;
+			cursor: pointer;
+		}
+		#statusMsg {
+			margin-left: 15px;
+			font-weight: bold;
+			color: #4CAF50;
+		}
 	</style>
-	<script type="text/javascript">
-	outp={}
-	function sleep(ms) {
-   		return new Promise(resolve => setTimeout(resolve, ms));
-	}
-	function img(src){
-		var img=new Image();img.loaded=false;img.onload=function(){
-			this.loaded=true;
-		}
-		img.src=src;
-		
-		
-		return img
-	};
-	images={};
-	images.water=new img("water.png")
-	images.land=new img("grass.png");
-	images.grass=new img("grass.png");
-	images.forest=new img("forest.png");
-	images.mountain=new img("mountains.png");
-	images.village=new img("village.png");
-	images.fort=new img("fort.png");
-	images.beach=new img("beach.png");
-	images.desert=new img("desert.png");
-	images.arctic=new img("snow.png");
-	images.swamp=new img("swamp.png");
-	images.steepe=new img("steepe.png");
-	images.arcticForest=new img("forest snow.png");
-	images.lakes=new img("lakes.png");
-	images.town=new img("town.png");
-	images.farm=new img("farm.png");
-	images.desert_farm=new img("desert farm.png");
-	images.loaded={}
-	images.isImagesLoaded=function(){
-		for (var prop in images) {
-    		if(images[prop].loaded===false)return false;
-		}
-		return true;
-	}
-	
-	function Div(id){
-		var div=document.createElement("canvas");
-		if(id!=undefined)div.id=id;
-		div.context=div.getContext("2d")
-		return div;
-	}
-	currentWorld={};
-		class Tile {
-			constructor(type,transports,view,event){
-				
-				this.type=type;
-				this.transports=transports;
-				if(typeof(event)!="undefined")this.event=event;
-				//this.classList.add("tile");
-				//this.classList.add(view);
-				this.img=images[type];
-				if(this.img==undefined)console.log(type)
-				
-				
-				this.width=100;
-				this.height=100;
-			}
-			fill=function(subtileType,firstPoint,lastPoint,subtileContainer){
-				var firstX=0, firstY=0,lastX=0,lastY=0;
-				
-				
-						if(firstPoint.x>lastPoint.x){firstX=lastPoint.x;lastX=firstPoint.x}else {firstX=firstPoint.x;lastX=lastPoint.x};
-						if(firstPoint.y>lastPoint.y){firstY=lastPoint.y;lastY=firstPoint.y}else {firstY=firstPoint.y;lastY=lastPoint.y};
-						if(firstX<0)firstX=0;
-						if(firstY<0)firstY=0;
-						if(lastX>9)lastX=9;
-						if(lastY>9)lastY=9;
-						
-						for (var i = firstX; i <= lastX; i++) {
-							
-							for (var j = firstY; j <= lastY; j++) {
-								this.subtiles[i][j]=new subtileType();
-								if(typeof(subtileContainer)!='undefined')subtileContainer.subtiles.push(this.subtiles[i][j])
-							}		
-						}
-					}
-
-		}
-		class subTile extends Tile{
-			constructor(type,transports,view,event){
-				super(type,transports,view,event);
-				//this.classList.remove("tile");
-				//this.classList.add("subtile");
-				
-			}
-		}
-		class Island{
-			constructor(currentWorld){
-				this.biom="regular";
-				this.lands=[];
-				this.forests=[];
-				this.mountains=[];
-				this.villages=[];
-				this.beaches=[];
-				this.forts=[];
-				this.lakes=[];
-				this.farms=[];
-				this.towns=[];
-				this.countOfForests=Math.floor(Math.random()*10);
-				this.sizeOfForests=Math.ceil(Math.random()*10);
-				this.parentWorld=currentWorld;
-				this.complexityOfForests=Math.ceil(Math.pow(this.countOfForests*this.sizeOfForests,1/2));
-				this.countOfMountains=Math.floor(Math.random()*3);
-				this.mountainDivider=Math.ceil(Math.random()*30);
-				this.mountainLength=Math.ceil(Math.random()*10);
-				this.mountainComplexity=1//Math.ceil(Math.pow(this.mountainDivider*this.mountainLength*this.countOfMountains,1/3));
-				this.countOfLakes=Math.floor(Math.random()*2);//Math.floor(Math.random()*(this.countOfMountains+this.countOfForests)/2);
-				this.sizeOfLakes=Math.ceil(Math.random()*1);
-				this.complexityOfLakes=Math.ceil(Math.pow(this.countOfLakes*this.sizeOfLakes,1/2));
-				this.countOfVillages=Math.floor(Math.random()*4)
-				this.sizeOfVillages=Math.ceil(Math.random()*2)
-				this.countOfFarms=Math.floor(Math.random()*4)
-				this.sizeOfFarms=Math.ceil(Math.random()*2)
-				this.townChance=this.countOfFarms/10;
-				this.fortChance=this.countOfVillages/10;
-				
-				
-			}
-			chooseBiom=function(){
-				this.biom="regular";
-				
-				if(this.villages.length==0)this.biom="wildland"
-				if(this.mountains.length==0)this.biom="swamp";
-				if(this.forests.length==0){
-					if(this.lands[0].y<this.parentWorld.sizeY*8/10){this.biom="steepe"}else{this.biom="desert";}
-				}
-				//if(this.forests.length<this.lands.length&&this.mountains.length>this.lands.length)this.biom="arctic";
-				for(var i=0;i<this.lands.length;i++){
-					
-						//this.lands[i].classList.add(this.biom);
-						this.lands[i].biom=this.biom;
-					
-				}
-				if(this.lands[0].y<this.parentWorld.sizeY*3/10)this.biom="arctic";
-				if((this.biom!="regular")&&this.biom!="wildland"){this.img=images[this.biom]}else{this.img=images.land};
-			}
-		}
-		class Water extends Tile{
-			constructor(){super("water","Ship","water",function(){console.log("water");return null;})}
-		}
-
-		class Land extends Tile{
-			constructor(){
-				super("land","","land",function(){console.log("land");return null;})
-				this.forests=[];
-				this.mountains=[];
-				this.subtiles=[];
-				for (var i = 0; i < 10; i++) {
-					this.subtiles[i]=[];
-					for(var	j=0;j<10;j++){
-						this.subtiles[i][j]=new GrassLands();
-					} 
-				}
-				this.img=images.grass;
-			}
-			growForests=function(){
-				
-				
-				for(var i=0;i<this.parent.countOfForests;i++){
-					
-					var forestCenter={x:Math.ceil(Math.random()*10),y:Math.ceil(Math.random()*10)};
-					var last={x:forestCenter.x,y:forestCenter.y};
-					
-					var curr={x:0,y:0};
-					var currForest={subtiles:[]};
-					for(var j=0;j<this.parent.complexityOfForests;j++){
-						
-						curr.x=last.x+Math.ceil(Math.random()*this.parent.sizeOfForests)*plusminus();
-						curr.y=last.y+Math.ceil(Math.random()*this.parent.sizeOfForests)*plusminus();
-						this.fill(Forest,curr,last,currForest);
-						last=curr;
-						if(Math.random()<0.5)last={x:forestCenter.x,y:forestCenter.y};
-					}
-					this.parent.forests.push(currForest);
-
-				}
-			}
-			growLakes=function(){
-				
-
-				
-				for(var i=0;i<this.parent.countOfLakes;i++){
-					
-					var lakeCenter={x:Math.ceil(Math.random()*10),y:Math.ceil(Math.random()*10)};
-					var last={x:lakeCenter.x,y:lakeCenter.y};
-					
-					var curr={x:0,y:0};
-					var currLake={subtiles:[]};
-					for(var j=0;j<this.parent.complexityOfLakes;j++){
-						
-						curr.x=last.x+Math.ceil(Math.random()*this.parent.sizeOfLakes)*plusminus();
-						curr.y=last.y+Math.ceil(Math.random()*this.parent.sizeOfLakes)*plusminus();
-						this.fill(Lakes,curr,last,currLake);
-						last=curr;
-						if(Math.random()<0.2)last={x:lakeCenter.x,y:lakeCenter.y};
-					}
-					this.parent.lakes.push(currLake);
-
-				}
-			}
-			growMountains=function(){
-				for(var i=0;i<this.parent.countOfMountains;i++){
-					
-					var mountainCenter={x:Math.ceil(Math.random()*10),y:Math.ceil(Math.random()*10)};
-					var last={x:mountainCenter.x,y:mountainCenter.y};
-					
-					var curr={x:0,y:0};
-					var currMountain={subtiles:[]};
-					for(var j=0;j<this.parent.mountainComplexity;j++){
-						
-						curr.x=last.x+Math.ceil(Math.random()*this.parent.mountainLength)*plusminus();
-						curr.y=last.y+Math.ceil(Math.random()*this.parent.mountainLength)*plusminus();
-						if(curr.x>curr.y){curr.y=Math.ceil(curr.y/this.parent.mountainDivider)}else if(curr.x<curr.y){curr.x=Math.ceil(curr.x/this.parent.mountainDivider)}else{curr.y=Math.ceil(curr.y/this.parent.mountainDivider);curr.x=Math.ceil(curr.x/this.parent.mountainDivider)}
-						this.fill(Mountain,curr,last,currMountain);
-						last=curr;
-					}
-					this.parent.mountains.push(currMountain);
-
-				}
-			}
-			growVillages=function(){
-				for(var i=0;i<Math.floor(Math.random()*this.parent.countOfVillages);i++){
-					var currentVillage={subtiles:[]};
-					var curr={x:Math.floor(Math.random()*10),y:Math.floor(Math.random()*10)}
-					this.fill(Village,curr,{x:Math.ceil(curr.x+plusminus()*Math.random()*this.parent.sizeOfVillages),y:Math.ceil(curr.y+plusminus()*Math.random()*this.parent.sizeOfVillages)},currentVillage);
-					this.parent.villages.push(currentVillage);
-				}
-			}
-			growFarms=function(){
-				for(var i=0;i<Math.floor(Math.random()*this.parent.countOfFarms);i++){
-					var currentFarm={subtiles:[]};
-					var curr={x:Math.floor(Math.random()*10),y:Math.floor(Math.random()*10)}
-					this.fill(Farm,curr,{x:Math.ceil(curr.x+plusminus()*Math.random()*this.parent.sizeOfFarms),y:Math.ceil(curr.y+plusminus()*Math.random()*this.parent.sizeOfFarms)},currentFarm);
-					this.parent.farms.push(currentFarm);
-				}
-			}
-			
-			growBeaches=function(){
-				
-				if(this.x!=0)if(currentWorld.tiles[this.x-1][this.y].type=="water")//north
-				{
-					var currBeach={subtiles:[]}
-					this.fill(Beach,{x:0,y:0},{x:0,y:9},currBeach);
-					this.parent.beaches.push(currBeach)
-				}
-				if(this.x<currentWorld.sizeX-1)
-				if(currentWorld.tiles[this.x+1][this.y].type=="water")//south
-				{
-					
-					var currBeach={subtiles:[]}
-					this.fill(Beach,{x:9,y:0},{x:9,y:9},currBeach);
-					this.parent.beaches.push(currBeach)
-				}
-				if(this.y!=0)if(currentWorld.tiles[this.x][this.y-1].type=="water")//west
-				{
-					var currBeach={subtiles:[]}
-					this.fill(Beach,{x:0,y:0},{x:9,y:0},currBeach);
-					this.parent.beaches.push(currBeach)
-				}
-				if(this.y<currentWorld.sizeY-1)
-				if(currentWorld.tiles[this.x][this.y+1].type=="water")//east
-				{
-					
-					var currBeach={subtiles:[]}
-					this.fill(Beach,{x:0,y:9},{x:9,y:9},currBeach);
-					this.parent.beaches.push(currBeach)
-				}
-			}
-			growFort=function(){
-				if(Math.random()<this.parent.fortChance){
-					var currentFort=new Fort();
-					this.subtiles[Math.floor(Math.random()*10)][Math.floor(Math.random()*10)]=currentFort;
-					this.parent.forts.push({subtiles:[currentFort]});
-				}
-			}
-			growTowns=function(){
-				if(Math.random()<this.parent.townChance){
-					var currentTown=new Town();
-					this.subtiles[Math.floor(Math.random()*10)][Math.floor(Math.random()*10)]=currentTown;
-					this.parent.towns.push({subtiles:[currentTown]});
-				}
-			}
-			
-			update=function(){
-				while(!images.isImagesLoaded()){};
-				
-				
-				
-				for (var i = 0; i < 10; i++) {
-					
-					for(var	j=0;j<10;j++){
-						currentWorld.context.drawImage(this.parent.img,this.x*100+i*10,this.y*100+j*10);
-						outp=this.subtiles[i][j]
-						if(this.subtiles[i][j].type=="grass"){currentWorld.context.drawImage(this.parent.img,this.x*100+i*10,this.y*100+j*10)}else{
-							currentWorld.context.drawImage(this.subtiles[i][j].img,this.x*100+i*10,this.y*100+j*10)
-						}
-						}
-					}
-					
-					
-				
-			}
-			
-			
-		}
-		class Beach extends subTile{
-			constructor(){super("beach","Ship,Foot,Horse","beach",function(){console.log("beach");return null;})}
-		}
-		class GrassLands extends subTile{
-			constructor(){super("grass","Foot,Wheels,Horse","grassLands",function(){console.log("grassLands");return null;})}
-		}
-		class Forest extends subTile{
-			constructor(){super("forest","Foot","forest",function(){console.log("forest");return null;});this.innerHTML=""}
-		}
-		class Lakes extends subTile{
-			constructor(){super("lakes","Foot","lakes",function(){console.log("lakes");return null;});this.innerHTML=""}
-		}
-		class Mountain extends subTile{
-			constructor(){super("mountain","Mountain","mountain",function(){console.log("mountain");return null;});this.innerHTML=""}
-		}
-		class Village extends subTile{
-			constructor(){super("village","Foot,Wheels,Horse","village",function(){console.log("village");return null;});this.innerHTML=""}
-		}
-		class Farm extends subTile{
-			constructor(){super("farm","Foot,Wheels,Horse","farm",function(){console.log("farm");return null;});this.innerHTML=""}
-		}
-		class Town extends subTile{
-			constructor(){super("town","Foot,Wheels,Horse","town",function(){console.log("town");return null;})}
-		}
-		class Fort extends subTile{
-			constructor(){super("fort","Foot,Wheels,Horse","fort",function(){console.log("fort");return null;});this.innerHTML=""}
-		}
-		class City extends subTile{
-			constructor(){super("city","Foot,Wheels,Horse","city",function(){console.log("city");return null;})}
-		}
-		class Port extends subTile{
-			constructor(){super("port","Foot,Wheels,Horse","port",function(){console.log("port");return null;})}
-		}
-		function plusminus(){if(Math.random()<0.5){return -1}else return 1}
-		class WorldMap extends Div{
-			fill=function(tileType,firstPoint,lastPoint,island){
-				var firstX=0, firstY=0,lastX=0,lastY=0;
-				if(typeof(island)=="undefined")var island={lands:[]};
-						if(firstPoint.x>lastPoint.x){firstX=lastPoint.x;lastX=firstPoint.x}else {firstX=firstPoint.x;lastX=lastPoint.x};
-						if(firstPoint.y>lastPoint.y){firstY=lastPoint.y;lastY=firstPoint.y}else {firstY=firstPoint.y;lastY=lastPoint.y};
-						if(firstX<0)firstX=0;
-						if(firstY<0)firstY=0;
-						if(lastX>this.sizeX)lastX=this.sizeX;
-						if(lastY>this.sizeY)lastY=this.sizeY;
-						for (var i = firstX; i < lastX; i++) {
-							for (var j = firstY; j < lastY; j++) {
-								this.tiles[i][j]=new tileType();
-								this.tiles[i][j].x=i;
-								this.tiles[i][j].y=j;
-								island.lands.push(this.tiles[i][j]);
-								this.tiles[i][j].parent=island;
-							}		
-						}
-					}
-			constructor(type,sizeX,sizeY,countOfIslands,islandMaxSize){
-				super();
-				currentWorld=this;
-				if(typeof(sizeX)=="undefined"){
-					sizeX=25;
-					sizeY=25;
-				}
-				this.type=type;
-				this.islands=[];
-				this.tiles=[];
-				this.sizeX=sizeX;
-				this.sizeY=sizeY;
-				this.style.width=sizeX*100+"px";
-				this.style.height=sizeY*100+"px";
-				this.width=sizeX*100;
-				this.height=sizeY*100;
-				for (var i = 0; i < sizeX; i++) {
-					this.tiles[i]=[];
-					for(var	j=0;j<sizeY;j++){
-						this.tiles[i][j]=new Water();
-						for(var h=0;h<10;h++)
-							for(var v=0;v<10;v++){
-								this.context.drawImage(images.water,i*100+h*10,j*100+v*10)
-							}
-					} 
-				}
-				for(var i=0;i<countOfIslands;i++){
-					var islandCenter={x:Math.ceil(Math.random()*sizeX),y:Math.ceil(Math.random()*sizeY)};
-					var last={x:islandCenter.x,y:islandCenter.y};
-					var islandComplexity=Math.pow(countOfIslands*islandMaxSize,1/2);
-					var curr={x:0,y:0};
-					var currIsland=new Island(this);
-					for(var j=0;j<islandComplexity;j++){
-						curr.x=last.x+Math.ceil(Math.random()*islandMaxSize)*plusminus();
-						curr.y=last.y+Math.ceil(Math.random()*islandMaxSize)*plusminus();
-						this.fill(Land,curr,last,currIsland);
-						last=curr;
-						if(Math.random()<0.5)last={x:islandCenter.x,y:islandCenter.y};
-					}
-					this.islands.push(currIsland);
-
-				}
-				for(var i=0;i<sizeX;i++){
-					for(var j=0;j<sizeY;j++){
-						if(this.tiles[i][j].type=="land"){this.tiles[i][j].growBeaches();this.tiles[i][j].growLakes();this.tiles[i][j].growForests();this.tiles[i][j].growMountains();this.tiles[i][j].growVillages();this.tiles[i][j].growFarms();this.tiles[i][j].growTowns();this.tiles[i][j].growFort();
-						}
-						
-					}
-					
-				}
-				for(var i=0;i<this.islands.length;i++){
-					this.islands[i].chooseBiom();
-				}
-				for(var i=0;i<sizeX;i++){
-					for(var j=0;j<sizeY;j++){
-						if(this.tiles[i][j].type=="land"){
-							
-						this.tiles[i][j].update();}
-						
-					}
-					
-					
-				}
-			}	
-			
-		}
-	</script>
 </head>
 <body>
+
 <div id="inputs">
-<input type="" id="vertical" placeholder="vertical" value="50" title="vertical" />
-<input type="" id="horizontal" placeholder="horizontal" value="50" title="horizontal"/>
-<input type="" id="countOfIslands" placeholder="count of Islands" value="50" title="count of Islands"/>
-<input type="" id="MaxSize" placeholder="MaxSize of dimension of island part" value="5" title="MaxSize of dimension of island part"/>
-<button width="100px" height="100px" onclick="document.body.appendChild(new WorldMap('test',document.getElementById('horizontal').value,document.getElementById('vertical').value,document.getElementById('countOfIslands').value,document.getElementById('MaxSize').value));document.getElementById('inputs').remove()">generate</button>
+	<label title="horizontal">W: <input type="number" id="horizontal" value="50" /></label>
+	<label title="vertical">H: <input type="number" id="vertical" value="50" /></label>
+	<label title="count of Islands">Islands: <input type="number" id="countOfIslands" value="50" /></label>
+	<label title="MaxSize of dimension of island part">Max Size: <input type="number" id="MaxSize" value="5" /></label>
+	<button id="generateBtn">Generate Map</button>
+	<span id="statusMsg"></span>
 </div>
 <br/>
+<div id="mapContainer"></div>
+
+<script type="text/javascript">
+	"use strict";
+
+	// ==========================================
+	// 1. IMAGE LOADING (PROMISES)
+	// Eliminates the CPU-burning "while" loop
+	// ==========================================
+	const imageSources = {
+		water: "water.png",
+		land: "grass.png",
+		grass: "grass.png",
+		forest: "forest.png",
+		mountain: "mountains.png",
+		village: "village.png",
+		fort: "fort.png",
+		beach: "beach.png",
+		desert: "desert.png",
+		arctic: "snow.png",
+		swamp: "swamp.png",
+		steepe: "steepe.png",
+		arcticForest: "forest snow.png",
+		lakes: "lakes.png",
+		town: "town.png",
+		farm: "farm.png",
+		desert_farm: "desert farm.png"
+	};
+
+	const IMAGES = {};
+	let imagesLoaded = false;
+
+	async function preloadImages() {
+		const promises = Object.keys(imageSources).map(key => {
+			return new Promise((resolve) => {
+				const img = new Image();
+				img.onload = () => { IMAGES[key] = img; resolve(); };
+				img.onerror = () => {
+					console.warn(`Could not load ${imageSources[key]}, creating fallback.`);
+					// Create a tiny colored square if image is missing to prevent crashes
+					const c = document.createElement('canvas');
+					c.width = 10; c.height = 10;
+					const ctx = c.getContext('2d');
+					ctx.fillStyle = key === 'water' ? 'blue' : (key === 'grass' ? 'green' : 'gray');
+					ctx.fillRect(0,0,10,10);
+					IMAGES[key] = c;
+					resolve();
+				};
+				img.src = imageSources[key];
+			});
+		});
+		await Promise.all(promises);
+		imagesLoaded = true;
+	}
+
+	// ==========================================
+	// 2. HELPERS
+	// ==========================================
+	function plusminus() { return Math.random() < 0.5 ? -1 : 1; }
+	
+	// Yields to the browser to prevent UI freezing (The Loading Bar Fix)
+	function yieldToBrowser() { return new Promise(r => setTimeout(r, 0)); }
+
+	// ==========================================
+	// 3. CORE LOGIC (FLYWEIGHT PATTERN)
+	// Eliminates 250,000 sub-objects, saving Gigabytes of RAM
+	// ==========================================
+	class Tile {
+		constructor(type, x, y) {
+			this.type = type;
+			this.x = x;
+			this.y = y;
+			this.biom = "regular";
+		}
+	}
+
+	class Water extends Tile {
+		constructor(x, y) { super("water", x, y); }
+	}
+
+	class Land extends Tile {
+		constructor(x, y) {
+			super("land", x, y);
+			this.subtiles = []; // Stores primitive STRINGS instead of giant class instances
+			
+			for (let i = 0; i < 10; i++) {
+				this.subtiles[i] = [];
+				for(let j = 0; j < 10; j++) {
+					this.subtiles[i][j] = "grass"; 
+				}
+			}
+		}
+
+		fill(subtileTypeStr, firstPoint, lastPoint, subtileContainer) {
+			let firstX = Math.min(firstPoint.x, lastPoint.x);
+			let lastX = Math.max(firstPoint.x, lastPoint.x);
+			let firstY = Math.min(firstPoint.y, lastPoint.y);
+			let lastY = Math.max(firstPoint.y, lastPoint.y);
+
+			if (firstX < 0) firstX = 0;
+			if (firstY < 0) firstY = 0;
+			if (lastX > 9) lastX = 9;
+			if (lastY > 9) lastY = 9;
+
+			for (let i = firstX; i <= lastX; i++) {
+				for (let j = firstY; j <= lastY; j++) {
+					this.subtiles[i][j] = subtileTypeStr;
+					if (subtileContainer) {
+						subtileContainer.subtiles.push({x: i, y: j}); // Store coordinates, not objects!
+					}
+				}
+			}
+		}
+
+		growForests() {
+			for (let i = 0; i < this.parent.countOfForests; i++) {
+				let forestCenter = {x: Math.ceil(Math.random()*10), y: Math.ceil(Math.random()*10)};
+				let last = {x: forestCenter.x, y: forestCenter.y};
+				let curr = {x:0, y:0};
+				let currForest = {subtiles: []};
+				
+				for(let j = 0; j < this.parent.complexityOfForests; j++) {
+					curr.x = last.x + Math.ceil(Math.random() * this.parent.sizeOfForests) * plusminus();
+					curr.y = last.y + Math.ceil(Math.random() * this.parent.sizeOfForests) * plusminus();
+					this.fill("forest", curr, last, currForest);
+					last = {x: curr.x, y: curr.y};
+					if (Math.random() < 0.5) last = {x: forestCenter.x, y: forestCenter.y};
+				}
+				this.parent.forests.push(currForest);
+			}
+		}
+
+		growLakes() {
+			for (let i = 0; i < this.parent.countOfLakes; i++) {
+				let lakeCenter = {x: Math.ceil(Math.random()*10), y: Math.ceil(Math.random()*10)};
+				let last = {x: lakeCenter.x, y: lakeCenter.y};
+				let curr = {x:0, y:0};
+				let currLake = {subtiles: []};
+				
+				for(let j = 0; j < this.parent.complexityOfLakes; j++) {
+					curr.x = last.x + Math.ceil(Math.random() * this.parent.sizeOfLakes) * plusminus();
+					curr.y = last.y + Math.ceil(Math.random() * this.parent.sizeOfLakes) * plusminus();
+					this.fill("lakes", curr, last, currLake);
+					last = {x: curr.x, y: curr.y};
+					if (Math.random() < 0.2) last = {x: lakeCenter.x, y: lakeCenter.y};
+				}
+				this.parent.lakes.push(currLake);
+			}
+		}
+
+		growMountains() {
+			for (let i = 0; i < this.parent.countOfMountains; i++) {
+				let mountainCenter = {x: Math.ceil(Math.random()*10), y: Math.ceil(Math.random()*10)};
+				let last = {x: mountainCenter.x, y: mountainCenter.y};
+				let curr = {x:0, y:0};
+				let currMountain = {subtiles: []};
+				
+				for(let j = 0; j < this.parent.mountainComplexity; j++) {
+					curr.x = last.x + Math.ceil(Math.random() * this.parent.mountainLength) * plusminus();
+					curr.y = last.y + Math.ceil(Math.random() * this.parent.mountainLength) * plusminus();
+					
+					if (curr.x > curr.y) curr.y = Math.ceil(curr.y / this.parent.mountainDivider);
+					else if (curr.x < curr.y) curr.x = Math.ceil(curr.x / this.parent.mountainDivider);
+					else {
+						curr.y = Math.ceil(curr.y / this.parent.mountainDivider);
+						curr.x = Math.ceil(curr.x / this.parent.mountainDivider);
+					}
+					
+					this.fill("mountain", curr, last, currMountain);
+					last = {x: curr.x, y: curr.y};
+				}
+				this.parent.mountains.push(currMountain);
+			}
+		}
+
+		growVillages() {
+			let amount = Math.floor(Math.random() * this.parent.countOfVillages);
+			for (let i = 0; i < amount; i++) {
+				let currentVillage = {subtiles: []};
+				let curr = {x: Math.floor(Math.random()*10), y: Math.floor(Math.random()*10)};
+				let next = {
+					x: Math.ceil(curr.x + plusminus() * Math.random() * this.parent.sizeOfVillages),
+					y: Math.ceil(curr.y + plusminus() * Math.random() * this.parent.sizeOfVillages)
+				};
+				this.fill("village", curr, next, currentVillage);
+				this.parent.villages.push(currentVillage);
+			}
+		}
+
+		growFarms() {
+			let amount = Math.floor(Math.random() * this.parent.countOfFarms);
+			for (let i = 0; i < amount; i++) {
+				let currentFarm = {subtiles: []};
+				let curr = {x: Math.floor(Math.random()*10), y: Math.floor(Math.random()*10)};
+				let next = {
+					x: Math.ceil(curr.x + plusminus() * Math.random() * this.parent.sizeOfFarms),
+					y: Math.ceil(curr.y + plusminus() * Math.random() * this.parent.sizeOfFarms)
+				};
+				this.fill("farm", curr, next, currentFarm);
+				this.parent.farms.push(currentFarm);
+			}
+		}
+
+		growBeaches(worldMap) {
+			if(this.x !== 0 && worldMap.tiles[this.x - 1][this.y].type === "water") {
+				let currBeach = {subtiles: []};
+				this.fill("beach", {x:0, y:0}, {x:0, y:9}, currBeach);
+				this.parent.beaches.push(currBeach);
+			}
+			if(this.x < worldMap.sizeX - 1 && worldMap.tiles[this.x + 1][this.y].type === "water") {
+				let currBeach = {subtiles: []};
+				this.fill("beach", {x:9, y:0}, {x:9, y:9}, currBeach);
+				this.parent.beaches.push(currBeach);
+			}
+			if(this.y !== 0 && worldMap.tiles[this.x][this.y - 1].type === "water") {
+				let currBeach = {subtiles: []};
+				this.fill("beach", {x:0, y:0}, {x:9, y:0}, currBeach);
+				this.parent.beaches.push(currBeach);
+			}
+			if(this.y < worldMap.sizeY - 1 && worldMap.tiles[this.x][this.y + 1].type === "water") {
+				let currBeach = {subtiles: []};
+				this.fill("beach", {x:0, y:9}, {x:9, y:9}, currBeach);
+				this.parent.beaches.push(currBeach);
+			}
+		}
+
+		growFort() {
+			if (Math.random() < this.parent.fortChance) {
+				let rx = Math.floor(Math.random()*10);
+				let ry = Math.floor(Math.random()*10);
+				this.subtiles[rx][ry] = "fort";
+				this.parent.forts.push({subtiles: [{x: rx, y: ry}]});
+			}
+		}
+
+		growTowns() {
+			if (Math.random() < this.parent.townChance) {
+				let rx = Math.floor(Math.random()*10);
+				let ry = Math.floor(Math.random()*10);
+				this.subtiles[rx][ry] = "town";
+				this.parent.towns.push({subtiles: [{x: rx, y: ry}]});
+			}
+		}
+	}
+
+	class Island {
+		constructor(parentWorld) {
+			this.biom = "regular";
+			this.lands = [];
+			this.forests = [];
+			this.mountains = [];
+			this.villages = [];
+			this.beaches = [];
+			this.forts = [];
+			this.lakes = [];
+			this.farms = [];
+			this.towns = [];
+			
+			this.parentWorld = parentWorld;
+			
+			this.countOfForests = Math.floor(Math.random()*10);
+			this.sizeOfForests = Math.ceil(Math.random()*10);
+			this.complexityOfForests = Math.ceil(Math.pow(this.countOfForests*this.sizeOfForests, 1/2));
+			
+			this.countOfMountains = Math.floor(Math.random()*3);
+			this.mountainDivider = Math.ceil(Math.random()*30);
+			this.mountainLength = Math.ceil(Math.random()*10);
+			this.mountainComplexity = 1;
+			
+			this.countOfLakes = Math.floor(Math.random()*2);
+			this.sizeOfLakes = Math.ceil(Math.random()*1);
+			this.complexityOfLakes = Math.ceil(Math.pow(this.countOfLakes*this.sizeOfLakes, 1/2));
+			
+			this.countOfVillages = Math.floor(Math.random()*4);
+			this.sizeOfVillages = Math.ceil(Math.random()*2);
+			this.countOfFarms = Math.floor(Math.random()*4);
+			this.sizeOfFarms = Math.ceil(Math.random()*2);
+			
+			this.townChance = this.countOfFarms / 10;
+			this.fortChance = this.countOfVillages / 10;
+		}
+
+		chooseBiom() {
+			this.biom = "regular";
+			if (this.villages.length === 0) this.biom = "wildland";
+			if (this.mountains.length === 0) this.biom = "swamp";
+			if (this.forests.length === 0) {
+				if (this.lands[0] && this.lands[0].y < this.parentWorld.sizeY * 8/10) {
+					this.biom = "steepe";
+				} else {
+					this.biom = "desert";
+				}
+			}
+			for (let i = 0; i < this.lands.length; i++) {
+				this.lands[i].biom = this.biom;
+			}
+			if (this.lands[0] && this.lands[0].y < this.parentWorld.sizeY * 3/10) {
+				this.biom = "arctic";
+			}
+		}
+	}
+
+	class WorldMap {
+		constructor(sizeX, sizeY, countOfIslands, islandMaxSize, canvasElement) {
+			this.sizeX = sizeX || 25;
+			this.sizeY = sizeY || 25;
+			this.countOfIslands = countOfIslands;
+			this.islandMaxSize = islandMaxSize;
+			this.canvas = canvasElement;
+			this.ctx = canvasElement.getContext("2d", { alpha: false }); // Optimize rendering
+			
+			this.canvas.width = this.sizeX * 100;
+			this.canvas.height = this.sizeY * 100;
+			
+			this.tiles = [];
+			this.islands = [];
+		}
+
+		fill(firstPoint, lastPoint, island) {
+			let firstX = Math.min(firstPoint.x, lastPoint.x);
+			let lastX = Math.max(firstPoint.x, lastPoint.x);
+			let firstY = Math.min(firstPoint.y, lastPoint.y);
+			let lastY = Math.max(firstPoint.y, lastPoint.y);
+
+			if (firstX < 0) firstX = 0;
+			if (firstY < 0) firstY = 0;
+			if (lastX > this.sizeX) lastX = this.sizeX;
+			if (lastY > this.sizeY) lastY = this.sizeY;
+
+			for (let i = firstX; i < lastX; i++) {
+				for (let j = firstY; j < lastY; j++) {
+					if (this.tiles[i][j].type !== "land") {
+						this.tiles[i][j] = new Land(i, j);
+					}
+					island.lands.push(this.tiles[i][j]);
+					this.tiles[i][j].parent = island;
+				}
+			}
+		}
+
+		async generate(statusElement) {
+			// 1. Create Base Water
+			statusElement.innerText = "Generating Base Map...";
+			for (let i = 0; i < this.sizeX; i++) {
+				this.tiles[i] = [];
+				for(let j = 0; j < this.sizeY; j++) {
+					this.tiles[i][j] = new Water(i, j);
+				}
+			}
+			await yieldToBrowser();
+
+			// 2. Grow Islands
+			statusElement.innerText = "Growing Islands & Continents...";
+			for (let i = 0; i < this.countOfIslands; i++) {
+				let islandCenter = {x: Math.ceil(Math.random()*this.sizeX), y: Math.ceil(Math.random()*this.sizeY)};
+				let last = {x: islandCenter.x, y: islandCenter.y};
+				let islandComplexity = Math.pow(this.countOfIslands * this.islandMaxSize, 1/2);
+				let curr = {x:0, y:0};
+				let currIsland = new Island(this);
+				
+				for (let j = 0; j < islandComplexity; j++) {
+					curr.x = last.x + Math.ceil(Math.random() * this.islandMaxSize) * plusminus();
+					curr.y = last.y + Math.ceil(Math.random() * this.islandMaxSize) * plusminus();
+					this.fill(curr, last, currIsland);
+					last = {x: curr.x, y: curr.y};
+					if (Math.random() < 0.5) last = {x: islandCenter.x, y: islandCenter.y};
+				}
+				if (currIsland.lands.length > 0) this.islands.push(currIsland);
+				
+				if (i % 5 === 0) await yieldToBrowser();
+			}
+
+			// 3. Populate Land Features
+			statusElement.innerText = "Populating Forests, Lakes, and Mountains...";
+			for (let i = 0; i < this.sizeX; i++) {
+				for (let j = 0; j < this.sizeY; j++) {
+					if (this.tiles[i][j].type === "land") {
+						this.tiles[i][j].growBeaches(this);
+						this.tiles[i][j].growLakes();
+						this.tiles[i][j].growForests();
+						this.tiles[i][j].growMountains();
+						this.tiles[i][j].growVillages();
+						this.tiles[i][j].growFarms();
+						this.tiles[i][j].growTowns();
+						this.tiles[i][j].growFort();
+					}
+				}
+				if (i % 5 === 0) await yieldToBrowser();
+			}
+
+			// 4. Resolve Biomes
+			for (let i = 0; i < this.islands.length; i++) {
+				this.islands[i].chooseBiom();
+			}
+
+			// 5. Draw to Canvas Output
+			statusElement.innerText = "Rendering final graphics...";
+			await yieldToBrowser();
+			this.render();
+			
+			statusElement.innerText = "Generation Complete!";
+		}
+
+		render() {
+			this.ctx.fillStyle = "black";
+			this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+			
+			for (let i = 0; i < this.sizeX; i++) {
+				for (let j = 0; j < this.sizeY; j++) {
+					const tile = this.tiles[i][j];
+					
+					if (tile.type === "water") {
+						for(let h=0; h<10; h++) {
+							for(let v=0; v<10; v++) {
+								if (IMAGES.water) this.ctx.drawImage(IMAGES.water, i*100 + h*10, j*100 + v*10, 10, 10);
+							}
+						}
+					} else if (tile.type === "land") {
+						let macroImgStr = "grass"; 
+						if(tile.biom !== "regular" && tile.biom !== "wildland") {
+							macroImgStr = tile.biom;
+						}
+						let macroImg = IMAGES[macroImgStr] || IMAGES.land;
+						
+						for(let h=0; h<10; h++){
+							for(let v=0; v<10; v++){
+								let subType = tile.subtiles[h][v];
+								
+								// 1. Draw base biome layer
+								if(macroImg) this.ctx.drawImage(macroImg, i*100 + h*10, j*100 + v*10, 10, 10);
+								
+								// 2. Draw sub-element (if not basic grass)
+								if(subType !== "grass" && IMAGES[subType]) {
+									this.ctx.drawImage(IMAGES[subType], i*100 + h*10, j*100 + v*10, 10, 10);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// ==========================================
+	// 4. UI EVENT BINDING
+	// ==========================================
+	document.getElementById('generateBtn').addEventListener('click', async () => {
+		const btn = document.getElementById('generateBtn');
+		const status = document.getElementById('statusMsg');
+		const container = document.getElementById('mapContainer');
+		
+		btn.disabled = true;
+
+		// Load images only once
+		if (!imagesLoaded) {
+			status.innerText = "Loading Image Assets...";
+			await preloadImages();
+		}
+
+		container.innerHTML = ""; // Clear old map
+		const canvas = document.createElement('canvas');
+		container.appendChild(canvas);
+
+		const sizeX = parseInt(document.getElementById('horizontal').value, 10);
+		const sizeY = parseInt(document.getElementById('vertical').value, 10);
+		const countOfIslands = parseInt(document.getElementById('countOfIslands').value, 10);
+		const maxSize = parseInt(document.getElementById('MaxSize').value, 10);
+
+		const map = new WorldMap(sizeX, sizeY, countOfIslands, maxSize, canvas);
+		
+		// Run Async Generation
+		await map.generate(status);
+
+		btn.disabled = false;
+		
+		// Optional: Clean up status message after 3 seconds
+		setTimeout(() => { if (!btn.disabled) status.innerText = ""; }, 3000);
+	});
+</script>
 
 </body>
 </html>
